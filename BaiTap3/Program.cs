@@ -1,4 +1,5 @@
 
+using BaiTap3.DbContexts;
 using BaiTap3.Services.Abstract;
 using BaiTap3.Services.Implements;
 
@@ -17,6 +18,11 @@ namespace BaiTap3
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddScoped<IStudentService, StudentService>();
+            builder.Services.AddScoped<ISubjectClassService, SubjectClassService>();
+            builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+            builder.Services.AddSingleton<StudentsDbContext>();
+            builder.Services.AddSingleton<SubjectClassDbContext>();
+            builder.Services.AddSingleton<EnrollmentDBContext>();
 
             var app = builder.Build();
 
