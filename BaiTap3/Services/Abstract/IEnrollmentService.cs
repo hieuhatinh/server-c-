@@ -7,7 +7,7 @@ namespace BaiTap3.Services.Abstract
     {
         void CreateEnrollment(CreateEnrollmentDto input);
 
-        List<Enrollment> GetAllEnrollments();
+        List<StudentClasses> GetAllEnrollments();
 
         List<Student> GetAllStudentsInClass(int idClass);
 

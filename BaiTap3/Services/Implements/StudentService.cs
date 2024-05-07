@@ -9,46 +9,47 @@ namespace BaiTap3.Services.Implements
 {
     public class StudentService : IStudentService
     {
-        private readonly StudentsDbContext _dbContext;
-        public StudentService(StudentsDbContext dbContext) 
+        private readonly ApplicationDbContext _applicationDbContext;
+        public StudentService(ApplicationDbContext applicationDbContext) 
         {
-            _dbContext = dbContext;
+            _applicationDbContext = applicationDbContext;
         }
 
         public Student CreateStudent(CreateStudentDto input)
         {
             var student = new Student
             {
-                Id = ++_dbContext.Id,
                 Name = input.Name,
                 DateOfBirth = input.DateOfBirth,
                 StudentCode = input.StudentCode,
             };
 
-            _dbContext.Students.Add(student);
+            _applicationDbContext.Students.Add(student);
+            _applicationDbContext.SaveChanges();
 
             return student;
         }
 
         public void DeleteStudent(int id)
         {
-            var student = _dbContext.Students.FirstOrDefault(student => student.Id == id);
+            var student = _applicationDbContext.Students.FirstOrDefault(student => student.Id == id);
             if (student == null)
             {
                 throw new UserException($"Không tìm thấy sinh viên có mã số {id}");
             }
 
-            _dbContext.Students.Remove(student);
+            _applicationDbContext.Students.Remove(student);
+            _applicationDbContext.SaveChanges();
         }
 
         public List<Student> GetAllStudents()
         {
-            return _dbContext.Students;
+            return _applicationDbContext.Students.ToList();
         }
 
         public Student GetByIdParams([FromQuery] int id)
         {
-            var student = _dbContext.Students.FirstOrDefault(student => student.Id == id);
+            var student = _applicationDbContext.Students.FirstOrDefault(student => student.Id == id);
             if ( student == null )
             {
                 throw new UserException($"Không tìm thấy sinh viên có mã số {id}");
@@ -59,7 +60,7 @@ namespace BaiTap3.Services.Implements
 
         public Student GetByIdPath(int id)
         {
-            var student = _dbContext.Students.FirstOrDefault(student => student.Id == id);
+            var student = _applicationDbContext.Students.FirstOrDefault(student => student.Id == id);
             if (student == null)
             {
                 throw new UserException($"Không tìm thấy sinh viên có mã số {id}");
@@ -70,17 +71,19 @@ namespace BaiTap3.Services.Implements
 
         public void UpdateStudent(int id, [FromBody] UpdateStudentDto input)
         {
-            var existStudent = _dbContext.Students.FirstOrDefault( student => student.Id == id);  
+            var existStudent = _applicationDbContext.Students.FirstOrDefault( student => student.Id == id);  
+
             if (existStudent == null )
             {
                 throw new UserException($"Không tìm thấy sinh viên có mã số {id}");
             } 
-            else
-            {
-                existStudent.Name = input.Name;
-                existStudent.DateOfBirth = input.DateOfBirth;
-                existStudent.StudentCode = input.StudentCode;
-            }
+            
+            existStudent.Name = input.Name;
+            existStudent.DateOfBirth = input.DateOfBirth;
+            existStudent.StudentCode = input.StudentCode;
+
+            _applicationDbContext.SaveChanges();
+
         }
     }
 }

@@ -2,6 +2,7 @@
 using BaiTap3.DbContexts;
 using BaiTap3.Services.Abstract;
 using BaiTap3.Services.Implements;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaiTap3
 {
@@ -20,9 +21,10 @@ namespace BaiTap3
             builder.Services.AddScoped<IStudentService, StudentService>();
             builder.Services.AddScoped<ISubjectClassService, SubjectClassService>();
             builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
-            builder.Services.AddSingleton<StudentsDbContext>();
-            builder.Services.AddSingleton<SubjectClassDbContext>();
-            builder.Services.AddSingleton<EnrollmentDBContext>();
+            //builder.Services.AddSingleton<ApplicationDbContext>();
+            builder.Services.AddDbContext<ApplicationDbContext>(options => {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));});
+
 
             var app = builder.Build();
 

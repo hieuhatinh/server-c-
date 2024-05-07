@@ -9,32 +9,30 @@ namespace BaiTap3.Services.Implements
 {
     public class SubjectClassService : ISubjectClassService
     {
-        private SubjectClassDbContext _subjectClassDbContext;
-        private EnrollmentDBContext _enrollmentDBContext;
+        private ApplicationDbContext _applicationDbContext;
 
-        public SubjectClassService(SubjectClassDbContext subjectClassDbContext, EnrollmentDBContext enrollmentDBContext)
+        public SubjectClassService(ApplicationDbContext applicationDbContext)
         {
-            _subjectClassDbContext = subjectClassDbContext;
-            _enrollmentDBContext = enrollmentDBContext;
+            _applicationDbContext = applicationDbContext;
         }
         public SubjectClass CreateSubjectClass(CreateSubjectClassDto input)
         {
             var subjectClass = new SubjectClass
             {
-                Id = ++_subjectClassDbContext.IdClass,
                 ClassName = input.ClassName,
                 ClassCode = input.ClassCode,
                 NumberStudents = input.NumberStudents,
             };
 
-            _subjectClassDbContext.SubjectClasses.Add(subjectClass);
+            _applicationDbContext.SubjectClasses.Add(subjectClass);
+            _applicationDbContext.SaveChanges();
 
             return subjectClass;
         }
 
         public void UpdateSubjectClass(int id, [FromBody] UpdateSubjectClassDto input)
         {
-            var existSubjectClass = _subjectClassDbContext.SubjectClasses.FirstOrDefault(item => item.Id == id);
+            var existSubjectClass = _applicationDbContext.SubjectClasses.FirstOrDefault(item => item.Id == id);
 
             if (existSubjectClass == null)
             {
@@ -44,11 +42,13 @@ namespace BaiTap3.Services.Implements
             existSubjectClass.ClassName = input.ClassName;
             existSubjectClass.ClassCode = input.ClassCode;
             existSubjectClass.NumberStudents = input.NumberStudents;
+
+            _applicationDbContext.SaveChanges();
         }
 
         public SubjectClass GetSubjectClass(int id)
         {
-            var existSubjectClass = _subjectClassDbContext.SubjectClasses.FirstOrDefault(item => item.Id == id);
+            var existSubjectClass = _applicationDbContext.SubjectClasses.FirstOrDefault(item => item.Id == id);
 
             if (existSubjectClass == null)
             {
@@ -60,26 +60,29 @@ namespace BaiTap3.Services.Implements
 
         public List<SubjectClass> GetAllSubjectClasses()
         {
-            return _subjectClassDbContext.SubjectClasses;
+            return _applicationDbContext.SubjectClasses.OrderBy(s => s.ClassName).ToList();
         }
 
         public void DeleteSubjectClass(int idClass)
         {
-            var exisSubjectClass = _subjectClassDbContext.SubjectClasses.FirstOrDefault(item => item.Id == idClass);
+            var exisSubjectClass = _applicationDbContext.SubjectClasses.FirstOrDefault(item => item.Id == idClass);
 
             if (exisSubjectClass == null) 
             {
                 throw new SubjectClassException("Không có lớp học này");
             }
 
-            var enrollments = _enrollmentDBContext.Enrollments.FindAll(item => item.IdSubjectClass == exisSubjectClass.Id);
-            foreach ( var enrollment in enrollments )
+            var studentsInClass = from student in _applicationDbContext.StudentClasses
+                                  where student.IdSubjectClass == exisSubjectClass.Id
+                                  select student;
+            foreach ( var student in studentsInClass )
             {
-                _enrollmentDBContext.Enrollments.Remove(enrollment);
+                _applicationDbContext.StudentClasses.Remove(student);
             }
 
-            _subjectClassDbContext.SubjectClasses.Remove(exisSubjectClass);
+            _applicationDbContext.SubjectClasses.Remove(exisSubjectClass);
 
+            _applicationDbContext.SaveChanges();
         }
     }
 }

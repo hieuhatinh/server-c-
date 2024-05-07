@@ -8,44 +8,38 @@ namespace BaiTap3.Services.Implements
 {
     public class EnrollmentService : IEnrollmentService
     {
-        private EnrollmentDBContext _enrollmentDbContext;
-        private StudentsDbContext _studentDbContext;
+        private ApplicationDbContext _applicationDbContext;
 
-        public EnrollmentService(EnrollmentDBContext enrollmentDbContext, StudentsDbContext studentDbContext)
+        public EnrollmentService(ApplicationDbContext applicationDbContext)
         {
-            _enrollmentDbContext = enrollmentDbContext;
-            _studentDbContext = studentDbContext;
+            _applicationDbContext = applicationDbContext;
         }
 
         public void CreateEnrollment(CreateEnrollmentDto input)
         {
             foreach (int idStudent in input.IdStudents)
             {
-                Enrollment enrollment = new Enrollment
+                StudentClasses enrollment = new StudentClasses
                 {
-                    Id = ++_enrollmentDbContext.Id, 
                     IdStudent = idStudent,
                     IdSubjectClass = input.IdSubjectClass
                 };
 
-                _enrollmentDbContext.Enrollments.Add(enrollment);
+                _applicationDbContext.StudentClasses.Add(enrollment);
             }
         }
 
-        public List<Enrollment> GetAllEnrollments()
+        public List<StudentClasses> GetAllEnrollments()
         {
-            return _enrollmentDbContext.Enrollments;
+            return _applicationDbContext.StudentClasses.ToList();
         }
-
 
         public List<Student> GetAllStudentsInClass(int idClass)
         {
-            //var enrollments = _enrollmentDbContext.Enrollments.FindAll(item => item.IdSubjectClass == idClass);
-
-            var studentsInClass = _enrollmentDbContext.Enrollments
+            var studentsInClass = _applicationDbContext.StudentClasses
                                     .Where(item => item.IdSubjectClass == idClass)
-                                    .Join(_studentDbContext.Students, 
-                                            enrollment => enrollment.IdStudent, 
+                                    .Join(_applicationDbContext.Students, 
+                                            enrollment => enrollment.IdSubjectClass, 
                                             student => student.Id, 
                                             (studentsInClass, student) => student)
                                     .ToList();
